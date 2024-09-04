@@ -1,0 +1,36 @@
+diff --git a/node_modules/rollup-plugin-chrome-extension/dist/index-cjs.js b/node_modules/rollup-plugin-chrome-extension/dist/index-cjs.js
+index 93275c2..5bb2a50 100644
+--- a/node_modules/rollup-plugin-chrome-extension/dist/index-cjs.js
++++ b/node_modules/rollup-plugin-chrome-extension/dist/index-cjs.js
+@@ -1848,6 +1848,7 @@ var definitions = {
+ 				"management",
+ 				"nativeMessaging",
+ 				"notifications",
++				"offscreen",
+ 				"pageCapture",
+ 				"platformKeys",
+ 				"power",
+diff --git a/node_modules/rollup-plugin-chrome-extension/dist/index-esm.js b/node_modules/rollup-plugin-chrome-extension/dist/index-esm.js
+index 168ea6f..6c97345 100644
+--- a/node_modules/rollup-plugin-chrome-extension/dist/index-esm.js
++++ b/node_modules/rollup-plugin-chrome-extension/dist/index-esm.js
+@@ -1834,6 +1834,7 @@ var definitions = {
+ 				"management",
+ 				"nativeMessaging",
+ 				"notifications",
++				"offscreen",
+ 				"pageCapture",
+ 				"platformKeys",
+ 				"power",
+diff --git a/node_modules/rollup-plugin-chrome-extension/schema/manifest-v3.schema.json b/node_modules/rollup-plugin-chrome-extension/schema/manifest-v3.schema.json
+index 5afdf25..5b534db 100644
+--- a/node_modules/rollup-plugin-chrome-extension/schema/manifest-v3.schema.json
++++ b/node_modules/rollup-plugin-chrome-extension/schema/manifest-v3.schema.json
+@@ -137,6 +137,7 @@
+           "management",
+           "nativeMessaging",
+           "notifications",
++          "offscreen",
+           "pageCapture",
+           "platformKeys",
+           "power",
