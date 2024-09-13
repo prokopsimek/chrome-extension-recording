@@ -62,28 +62,6 @@ export const RecordDialog: React.FC = () => {
     });
   };
 
-  const handleRecordAllClick = async () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const currentTab = tabs[0];
-
-      if (isMicRecording) {
-        // recorder.stop();
-        chrome.runtime.sendMessage({
-          action: 'stop-rec-all',
-          tabId: currentTab.id,
-        });
-        setIsMicRecording(false);
-      } else {
-        // recorder.start();
-        chrome.runtime.sendMessage({
-          action: 'start-rec-all',
-          tabId: currentTab.id,
-        });
-        setIsMicRecording(true);
-      }
-    });
-  };
-
   return (
     <div>
       <div>
@@ -94,11 +72,6 @@ export const RecordDialog: React.FC = () => {
       <div>
         <button onClick={handleMicRecordClick}>
           {isMicRecording ? 'Stop Mic Recording' : 'Start Mic Recording'}
-        </button>
-      </div>
-      <div>
-        <button onClick={handleRecordAllClick}>
-          {isMicRecording ? 'Stop All Recording' : 'Start All Recording'}
         </button>
       </div>
     </div>

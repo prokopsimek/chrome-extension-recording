@@ -48,6 +48,7 @@ const startRecordingOffscreen = async (tabId: number) => {
   chrome.runtime.sendMessage({
     type: 'start-recording',
     target: 'offscreen',
+    tabId,
     data: streamId,
     micStreamId,
   });
@@ -71,19 +72,13 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   } else if (message.action === 'startmicrec') {
     console.error('startmicrec in background');
 
-    const streamId = await new Promise<string>((resolve) => {
-      // chrome.tabCapture.getMediaStreamId({ consumerTabId: tabId }, (streamId) => {
-      chrome.tabCapture.getMediaStreamId({ consumerTabId: message.tabId }, (streamId) => {
-        resolve(streamId);
-      });
-    });
-    chrome.tabs.sendMessage(message.tabId, { action: 'startmicrec', target: 'content', streamId });
+    await chrome.tabs.sendMessage(message.tabId, { action: 'startmicrec', target: 'content' });
 
     // chrome.runtime.sendMessage({
     //   action: 'startmicrec',
     //   tabId: message.tabId,
     // });
-    return true;
+    // return true;
   } else if (message.action === 'stopmicrec') {
     console.error('stopmicrec in background');
     chrome.tabs.sendMessage(message.tabId, { action: 'stopmicrec', target: 'content' });
@@ -93,5 +88,26 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     //   tabId: message.tabId,
     // });
     return true;
+  } else if (message.action === 'stop-all-rec') {
+    const callback = (data: any) => {
+      console.error('stop-all-rec in background', Object.keys(data));
+      // return data;
+
+      // const blob = new Blob(data.tabData, { type: 'video/webm' });
+
+      // const url = URL.createObjectURL(blob);
+  
+      // chrome.tabs.create({ url });
+
+      chrome.tabs.sendMessage(message.tabId, { action: 'open-new-tab', target: 'content', data: data.micData });
+  
+    };
+    
+    chrome.storage.local.get(['tabData', "micData"], callback);
+
+    // window.open(URL.createObjectURL(blob), '_blank');
+  } else if (message.action === 'set-data') {
+    console.error('set-data in background', message.data.length, message.name);
+    await chrome.storage.local.set({ [message.name]: message.data });
   }
 });

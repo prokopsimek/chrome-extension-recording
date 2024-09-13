@@ -12,7 +12,7 @@ const App: React.FC = () => {
         switch (message.type) {
           case 'start-recording':
             console.error('OFFSCREEN start-recording');
-            startRecording(message.data, message.orgId, message.micStreamId);
+            startRecording(message.data, message.tabId, message.micData, message.orgId, message.micStreamId);
             break;
           case 'stop-recording':
             console.error('OFFSCREEN stop-recording');
@@ -28,7 +28,7 @@ const App: React.FC = () => {
   let recorder: MediaRecorder | undefined;
   let data: Blob[] = [];
 
-  async function startRecording(streamId: string, orgId: string, micStreamId: string) {
+  async function startRecording(streamId: string, tabId: number, micData: Blob[], orgId: string, micStreamId: string) {
     if (recorder?.state === 'recording') {
       throw new Error('Called startRecording while recording is in progress.');
     }
@@ -39,17 +39,16 @@ const App: React.FC = () => {
         mandatory: {
           chromeMediaSource: 'tab',
           chromeMediaSourceId: streamId,
-          // chromeMediaSourceId: micStreamId,
         },
       },
       video: false,
     } as any);
     console.error('OFFSCREEN media', media);
 
-    const videoMedia = await navigator.mediaDevices.getDisplayMedia({
-      // audio: true,
-      video: true,
-    });
+    // const videoMedia = await navigator.mediaDevices.getDisplayMedia({
+    //   // audio: true,
+    //   video: true,
+    // });
 
     // FIXME: this causes error in recording, stops recording the offscreen
     // const micMedia = await navigator.mediaDevices.getUserMedia({
@@ -72,7 +71,7 @@ const App: React.FC = () => {
 
     const destination = output.createMediaStreamDestination();
     // const micSource = output.createMediaStreamSource(micMedia);
-    const vidSource = output.createMediaStreamSource(videoMedia);
+    // const vidSource = output.createMediaStreamSource(videoMedia);
 
     source.connect(output.destination);
     source.connect(destination);
@@ -81,23 +80,40 @@ const App: React.FC = () => {
 
     // Start recording.
     recorder = new MediaRecorder(destination.stream, { mimeType: 'video/webm' });
-    recorder.ondataavailable = (event: any) => data.push(event.data);
+    recorder.ondataavailable = async (event: any) => { 
+      data.push(event.data) 
+      // await chrome.storage.local.set({ tabData: {data: data} })
+      const bytes = await new Blob(data, { type: 'video/webm' }).arrayBuffer();
+      await chrome.runtime.sendMessage({ action: 'set-data', name: 'tabData', data: Array.from(new Uint8Array(bytes)) })
+    };
     recorder.onstop = async () => {
-      const blob = new Blob(data, { type: 'video/webm' });
-
+      // const micData = await chrome.runtime.sendMessage({ tabId, action: 'stopmicrec', target: 'content' });
+      
+      // const blob = new Blob(data, { type: 'video/webm' });
+      
       // delete local state of recording
       chrome.runtime.sendMessage({
         action: 'set-recording',
         recording: false,
       });
 
-      window.open(URL.createObjectURL(blob), '_blank');
+      // window.open(URL.createObjectURL(blob), '_blank');
 
       // Clear state ready for next recording
       recorder = undefined;
       data = [];
+
+      await chrome.runtime.sendMessage({
+        action: 'stop-all-rec',
+        tabId,
+      });
+
     };
+
+    
     recorder.start();
+    
+    chrome.runtime.sendMessage({tabId, action: 'startmicrec', target: 'content' });
 
     console.error('OFFSCREEN recorder started', recorder);
 
@@ -113,6 +129,11 @@ const App: React.FC = () => {
     // recording is in progress. We could write it to storage but that slightly
     // increases the risk of things getting out of sync.
     window.location.hash = 'recording';
+  
+    // stop recording after 5 seconds
+    setTimeout(() => {
+      recorder?.stop();
+    }, 3000);  
   }
 
   async function stopRecording() {
