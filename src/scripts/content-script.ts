@@ -1,17 +1,18 @@
 // message listener
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.error('message', JSON.stringify(message));
-  if (message === 'startmicrec') {
-    console.error('startmicrec');
-    startRec(message.tabId);
-  } else if (message === 'stopmicrec') {
-    console.error('stopmicrec');
-    startRec(message.tabId);
+  if (message.target === 'content') {
+    if (message.action === 'startmicrec') {
+      console.error('startmicrec');
+      startRec(message.tabId, message.micStreamId);
+    } else if (message.action === 'stopmicrec') {
+      console.error('stopmicrec');
+      startRec(message.tabId, message.micStreamId);
+    }
   }
 });
 
-
-const startRec = async (tabId: number) => {
+export const startRec = async (tabId: number, micStreamId: string) => {
   let recorder: MediaRecorder | undefined;
   let data: Blob[] = [];
 
@@ -20,7 +21,7 @@ const startRec = async (tabId: number) => {
   const media = await navigator.mediaDevices.getUserMedia({
     audio: true,
     video: true,
-  });
+  } as any);
 
   console.error('media is');
 
@@ -50,12 +51,12 @@ const startRec = async (tabId: number) => {
     recorder = undefined;
     data = [];
   };
-  
+
   recorder.start();
 
   setTimeout(() => {
     recorder?.stop();
-  }, 2000);
+  }, 5000);
 };
 
 /*

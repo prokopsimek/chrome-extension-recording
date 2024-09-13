@@ -34,26 +34,37 @@ const App: React.FC = () => {
     }
 
     const media = await navigator.mediaDevices.getUserMedia({
+      // audio: true,
       audio: {
         mandatory: {
           chromeMediaSource: 'tab',
           chromeMediaSourceId: streamId,
+          // chromeMediaSourceId: micStreamId,
         },
       },
       video: false,
     } as any);
     console.error('OFFSCREEN media', media);
 
+    const videoMedia = await navigator.mediaDevices.getDisplayMedia({
+      // audio: true,
+      video: true,
+    });
+
     // FIXME: this causes error in recording, stops recording the offscreen
     // const micMedia = await navigator.mediaDevices.getUserMedia({
     //   audio: {
     //     mandatory: {
-    //       chromeMediaSource: 'tab',
+    //       chromeMediaSource: 'device',
     //       chromeMediaSourceId: micStreamId,
     //     },
     //   },
     //   video: false,
     // } as any);
+    // const micMedia = await navigator.mediaDevices.getUserMedia({
+    //   audio: true,
+    //   video: false,
+    // });
 
     // Continue to play the captured audio to the user.
     const output = new AudioContext();
@@ -61,6 +72,7 @@ const App: React.FC = () => {
 
     const destination = output.createMediaStreamDestination();
     // const micSource = output.createMediaStreamSource(micMedia);
+    const vidSource = output.createMediaStreamSource(videoMedia);
 
     source.connect(output.destination);
     source.connect(destination);

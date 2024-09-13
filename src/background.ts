@@ -55,7 +55,7 @@ const startRecordingOffscreen = async (tabId: number) => {
   chrome.action.setIcon({ path: '/icons/recording.png' });
 };
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.action === 'startRecording') {
     console.error('startRecording in background', JSON.stringify(message));
     startRecordingOffscreen(message.tabId);
@@ -70,7 +70,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.storage.session.set({ recording: message.recording });
   } else if (message.action === 'startmicrec') {
     console.error('startmicrec in background');
-    chrome.tabs.sendMessage(message.tabId, 'startmicrec');
+
+    const streamId = await new Promise<string>((resolve) => {
+      // chrome.tabCapture.getMediaStreamId({ consumerTabId: tabId }, (streamId) => {
+      chrome.tabCapture.getMediaStreamId({ consumerTabId: message.tabId }, (streamId) => {
+        resolve(streamId);
+      });
+    });
+    chrome.tabs.sendMessage(message.tabId, { action: 'startmicrec', target: 'content', streamId });
 
     // chrome.runtime.sendMessage({
     //   action: 'startmicrec',
@@ -79,7 +86,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   } else if (message.action === 'stopmicrec') {
     console.error('stopmicrec in background');
-    chrome.tabs.sendMessage(message.tabId, 'stopmicrec');
+    chrome.tabs.sendMessage(message.tabId, { action: 'stopmicrec', target: 'content' });
 
     // chrome.runtime.sendMessage({
     //   action: 'stopmicrec',
