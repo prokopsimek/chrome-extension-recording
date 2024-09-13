@@ -68,5 +68,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message.action === 'set-recording') {
     console.error('set-recording in background', message.recording);
     chrome.storage.session.set({ recording: message.recording });
+  } else if (message.action === 'startmicrec') {
+    console.error('startmicrec in background');
+    chrome.tabs.sendMessage(message.tabId, 'startmicrec');
+
+    // chrome.runtime.sendMessage({
+    //   action: 'startmicrec',
+    //   tabId: message.tabId,
+    // });
+    return true;
+  } else if (message.action === 'stopmicrec') {
+    console.error('stopmicrec in background');
+    chrome.tabs.sendMessage(message.tabId, 'stopmicrec');
+
+    // chrome.runtime.sendMessage({
+    //   action: 'stopmicrec',
+    //   tabId: message.tabId,
+    // });
+    return true;
   }
 });

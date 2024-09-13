@@ -1,12 +1,62 @@
 // message listener
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.error('message', JSON.stringify(message));
-  // if (message.action === 'startRecording') {
-  //   startRecording(message.streamId, message.orgId);
-  // } else if (message.action === 'stopRecording') {
-  //   stopRecording();
-  // }
+  if (message === 'startmicrec') {
+    console.error('startmicrec');
+    startRec(message.tabId);
+  } else if (message === 'stopmicrec') {
+    console.error('stopmicrec');
+    startRec(message.tabId);
+  }
 });
+
+
+const startRec = async (tabId: number) => {
+  let recorder: MediaRecorder | undefined;
+  let data: Blob[] = [];
+
+  console.error('startRec');
+
+  const media = await navigator.mediaDevices.getUserMedia({
+    audio: true,
+    video: true,
+  });
+
+  console.error('media is');
+
+  // // Continue to play the captured audio to the user.
+  // // const output = new AudioContext();
+  // const output = new AudioContext();
+  // const source = output.createMediaStreamSource(media);
+
+  // const destination = output.createMediaStreamDestination();
+  // // const micSource = output.createMediaStreamSource(micMedia);
+
+  // source.connect(output.destination);
+  // source.connect(destination);
+  // // micSource.connect(destination);
+  // console.error('REC MIC output', output);
+
+  // Start recording.
+  recorder = new MediaRecorder(media, { mimeType: 'video/webm' });
+  recorder.ondataavailable = (event: any) => data.push(event.data);
+  recorder.onstop = async () => {
+    console.error('recorder.onstop');
+    const blob = new Blob(data, { type: 'video/webm' });
+
+    window.open(URL.createObjectURL(blob), '_blank');
+
+    // Clear state ready for next recording
+    recorder = undefined;
+    data = [];
+  };
+  
+  recorder.start();
+
+  setTimeout(() => {
+    recorder?.stop();
+  }, 2000);
+};
 
 /*
 
